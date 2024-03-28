@@ -1,5 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input 
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -48,7 +50,7 @@ def main():
         batch_size = 32
         input_shape = (224, 224, 3)
         size = (224, 224)
-        custom_epochs = 1
+        custom_epochs = 15
         monitor = "loss"
         pretrained_weights = os.path.join('.', 'weights', 'resnet50_notop.h5')
         base_filename = f"{name}_resnet50.h5"
@@ -60,9 +62,10 @@ def main():
         model_checkpoint = model_checkpt(early_stop_model, monitor)
 
         print("Applying Data Augmentation Techniques")
-        datagen = ImageDG_no_processed()
+        tr_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
+        val_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
 
-        train_generator = train_gen(train_dir, datagen, size, batch_size)
+        train_generator = train_gen(train_dir, tr_datagen, size, batch_size)
 
         train_size = len(train_generator.filenames)
         initial_learning_rate = 0.001
@@ -79,7 +82,7 @@ def main():
         class_labels = train_generator.class_indices
         print(class_labels)
 
-        validation_generator = validation_gen(val_dir, datagen, size, batch_size)
+        validation_generator = validation_gen(val_dir, val_datagen, size, batch_size)
 
         print("Loading the pre-trained model...")
 

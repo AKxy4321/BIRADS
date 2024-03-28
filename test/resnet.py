@@ -1,4 +1,6 @@
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input 
 import numpy as np
 import sys
 import os
@@ -9,14 +11,14 @@ from functions.plot.metrics import (
     save_metrics,
 )
 from functions.layers.resnet50 import build_model
-from functions.generator.generators import ImageDG_no_processed, test_gen
+from functions.generator.generators import test_gen
 
 
 def test_saved_model(model, test_dir):
 
     batch_size = 32
 
-    datagen = ImageDG_no_processed()
+    test_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
 
     data_exists = any(
         os.listdir(os.path.join(test_dir, class_dir))
@@ -27,7 +29,7 @@ def test_saved_model(model, test_dir):
         size = (224, 224)
         input_shape = (224, 224, 3)
 
-        test_generator = test_gen(test_dir, datagen, size, batch_size)
+        test_generator = test_gen(test_dir, test_datagen, size, batch_size)
 
         class_labels = test_generator.class_indices
 
