@@ -2,8 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.applications.efficientnet_v2 import EfficientNetV2L, preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.layers import Dense, Flatten, Dropout
-from tensorflow.keras.models import Model
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -28,12 +26,13 @@ from functions.model.misc import (
     model_checkpt,
     summary,
     freeze_layers,
-    get_unique_filename,
+    # get_unique_filename,
 )
+from functions.layers.custom import add_custom_fn
 from functions.generator.generators import (
     train_gen,
     validation_gen,
-    ImageDG_no_processed,
+    # ImageDG_no_processed,
 )
 from functions.learning_rate_scheduler.lr_scheduler import lr_custom
 
@@ -51,7 +50,7 @@ def main():
         size = (224, 224)
         custom_epochs = 15
         monitor = "loss"
-        base_filename = f"{name}_efficientnet.h5"
+        base_filename = f"{name}_efficientnetv2L.h5"
         early_stop_model = (#get_unique_filename
             os.path.join(".", "weights", base_filename)
         )
@@ -84,25 +83,18 @@ def main():
 
         print("Loading the pre-trained model...")
 
-        base_model = EfficientNetV2L (
+        model = EfficientNetV2L (
             include_top=False,
             weights=os.path.join('.', 'weights', 'efficientnetv2L_notop.h5'),
             input_shape=input_shape,
             pooling="max",
         )
-        summary(base_model, 1)
+        summary(model, 1)
 
-        base_model = freeze_layers(base_model, "all")
+        model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        x = Flatten()(base_model.output)
-        x = Dense(512, activation="relu")(x)
-        x = Dropout(0.4)(x)
-        x = Dense(256, activation="relu")(x)
-        x = Dropout(0.2)(x)
-        x = Dense(len(class_labels), activation="softmax")(x)
-
-        model = Model(base_model.input, x)
+        model = add_custom_fn(model=model, class_labels=class_labels)
 
         summary(model, 2)
 

@@ -2897,18 +2897,18 @@ ________________________________________________________________________________
                                                                                                   
  flatten (Flatten)           (None, 1280)                 0         ['max_pool[0][0]']            
                                                                                                   
- dense (Dense)               (None, 512)                  655872    ['flatten[0][0]']             
+ dense (Dense)               (None, 1024)                 1311744   ['flatten[0][0]']             
                                                                                                   
- dropout (Dropout)           (None, 512)                  0         ['dense[0][0]']               
+ dropout (Dropout)           (None, 1024)                 0         ['dense[0][0]']               
                                                                                                   
- dense_1 (Dense)             (None, 256)                  131328    ['dropout[0][0]']             
+ dense_1 (Dense)             (None, 1024)                 1049600   ['dropout[0][0]']             
                                                                                                   
- dropout_1 (Dropout)         (None, 256)                  0         ['dense_1[0][0]']             
+ dropout_1 (Dropout)         (None, 1024)                 0         ['dense_1[0][0]']             
                                                                                                   
- dense_2 (Dense)             (None, 4)                    1028      ['dropout_1[0][0]']           
+ dense_2 (Dense)             (None, 4)                    4100      ['dropout_1[0][0]']           
                                                                                                   
 ==================================================================================================
-Total params: 118535076 (452.18 MB)
-Trainable params: 788228 (3.01 MB)
+Total params: 120112292 (458.19 MB)
+Trainable params: 2365444 (9.02 MB)
 Non-trainable params: 117746848 (449.17 MB)
 __________________________________________________________________________________________________

@@ -27,14 +27,14 @@ from functions.model.misc import (
     model_checkpt,
     summary,
     freeze_layers,
-    get_unique_filename,
+    # get_unique_filename,
 )
 from functions.model.ResNet50 import ResNet50
 from functions.layers.custom import add_custom_fn
 from functions.generator.generators import (
     train_gen,
     validation_gen,
-    ImageDG_no_processed,
+    # ImageDG_no_processed,
 )
 from functions.learning_rate_scheduler.lr_scheduler import lr_custom
 

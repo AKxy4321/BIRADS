@@ -1,5 +1,5 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications.resnet50 import preprocess_input 
+from tensorflow.keras.applications.efficientnet_v2 import preprocess_input 
 import numpy as np
 import sys
 import os
@@ -9,7 +9,7 @@ from functions.metrics.f1_score_test import f1_score
 from functions.plot.metrics import (
     save_metrics,
 )
-from functions.layers.resnet50 import build_model
+from functions.layers.efficientnet import build_model
 from functions.generator.generators import test_gen
 
 
@@ -71,7 +71,7 @@ def test_saved_model(model, test_dir):
 if __name__ == "__main__":
     name = "data"
     test_dir = os.path.join(".", "dataset", f"{name}_split", "test")
-    weights_path = os.path.join('.', 'weights', f'{name}_resnet50.h5')
+    weights_path = os.path.join('.', 'weights', f'{name}_efficientnetv2L.h5')
 
     # Create Test Plots folder if it doesn't exist
     save_test_plots = os.path.join(".", "plots", "test")
