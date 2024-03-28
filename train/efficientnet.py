@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.applications.efficientnet_v2 import EfficientNetV2M 
+from tensorflow.keras.applications.efficientnet_v2 import EfficientNetV2L, preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Dense, Flatten, Dropout
 from tensorflow.keras.models import Model
 import sys
@@ -50,9 +51,8 @@ def main():
         size = (224, 224)
         custom_epochs = 15
         monitor = "loss"
-        model_path = os.path.join(".", "model", f"model_{name}_Dense.h5")
-        base_filename = f"weights_{name}_Dense.h5"
-        early_stop_model = get_unique_filename(
+        base_filename = f"{name}_efficientnet.h5"
+        early_stop_model = (#get_unique_filename
             os.path.join(".", "weights", base_filename)
         )
 
@@ -60,9 +60,10 @@ def main():
         model_checkpoint = model_checkpt(early_stop_model, monitor)
 
         print("Applying Data Augmentation Techniques")
-        datagen = ImageDG_no_processed()
+        tr_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
+        val_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
 
-        train_generator = train_gen(train_dir, datagen, size, batch_size)
+        train_generator = train_gen(train_dir, tr_datagen, size, batch_size)
 
         train_size = len(train_generator.filenames)
         initial_learning_rate = 0.001
@@ -79,13 +80,13 @@ def main():
         class_labels = train_generator.class_indices
         print(class_labels)
 
-        validation_generator = validation_gen(val_dir, datagen, size, batch_size)
+        validation_generator = validation_gen(val_dir, val_datagen, size, batch_size)
 
         print("Loading the pre-trained model...")
 
-        base_model = EfficientNetV2M (
+        base_model = EfficientNetV2L (
             include_top=False,
-            weights="imagenet",
+            weights=os.path.join('.', 'weights', 'efficientnetv2L_notop.h5'),
             input_shape=input_shape,
             pooling="max",
         )
@@ -130,11 +131,9 @@ def main():
             ],
         )
 
-        save_model = os.path.join(".", "model")
+        save_model = os.path.join(".", "weights")
         if not os.path.exists(save_model):
             os.makedirs(save_model)
-
-        model.save(model_path)
 
 
 if __name__ == "__main__":

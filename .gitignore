@@ -4,5 +4,7 @@ logs/
 weights/*_vgg16.h5
 weights/*_resnet50.h5
 weights/*_densenet121.h5
+weights/*_efficientnet.h5
+weights/efficientnetv2L_notop.h5
 **/__pycache__/
 *.Identifier
