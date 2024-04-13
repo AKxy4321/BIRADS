@@ -30,7 +30,7 @@ from functions.model.misc import (
     # get_unique_filename,
 )
 from functions.model.ResNet50 import ResNet50
-from functions.layers.custom import add_custom_fn
+from functions.layers.custom import add_custom_fn, add_custom_fn_large
 from functions.generator.generators import (
     train_gen,
     validation_gen,
@@ -44,13 +44,13 @@ def main():
     print("Number of devices: {}".format(strategy.num_replicas_in_sync))
 
     with strategy.scope():
-        name = "data"
+        name = "BIRADS"
         train_dir = os.path.join(".", "dataset", f"{name}_split", "train")
         val_dir = os.path.join(".", "dataset", f"{name}_split", "validation")
-        batch_size = 32
+        batch_size = 16
         input_shape = (224, 224, 3)
         size = (224, 224)
-        custom_epochs = 15
+        custom_epochs = 5
         monitor = "loss"
         pretrained_weights = os.path.join('.', 'weights', 'resnet50_notop.h5')
         base_filename = f"{name}_resnet50.h5"
@@ -91,7 +91,7 @@ def main():
         model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        model = add_custom_fn(model, class_labels=class_labels)
+        model = add_custom_fn_large(model, class_labels=class_labels)
 
         summary(model, 2)
 
@@ -103,13 +103,13 @@ def main():
             metrics="accuracy",
         )
 
-        # model_weights_path = os.path.join(
-        #     ".", "weights", f"weights_{name}_categorical_1_1.h5"
-        # )
-        # if os.path.exists(model_weights_path):  # Manually choose which weights to load
+        model_weights_path = os.path.join(
+             ".", "weights", f"{name}_resnet50.h5"
+         )
+        if os.path.exists(model_weights_path):  # Manually choose which weights to load
 
-        #     model.load_weights(model_weights_path)
-        #     print("Weights loaded from previous training")
+             model.load_weights(model_weights_path)
+             print("Weights loaded from previous training")
 
         model.fit(
             train_generator,

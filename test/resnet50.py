@@ -69,7 +69,7 @@ def test_saved_model(model, test_dir):
 
 
 if __name__ == "__main__":
-    name = "data"
+    name = "BIRADS"
     test_dir = os.path.join(".", "dataset", f"{name}_split", "test")
     weights_path = os.path.join('.', 'weights', f'{name}_resnet50.h5')
 

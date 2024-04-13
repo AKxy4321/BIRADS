@@ -1,5 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -27,8 +30,7 @@ from functions.model.misc import (
     freeze_layers,
     get_unique_filename,
 )
-from functions.layers.custom import add_custom
-from functions.model.VGG16 import VGG16
+from functions.layers.custom import add_custom_fn, add_custom_fn_large
 from functions.generator.generators import (
     train_gen,
     validation_gen,
@@ -42,13 +44,13 @@ def main():
     print("Number of devices: {}".format(strategy.num_replicas_in_sync))
 
     with strategy.scope():
-        name = "data"
+        name = "BIRADS"
         train_dir = os.path.join(".", "dataset", f"{name}_split", "train")
         val_dir = os.path.join(".", "dataset", f"{name}_split", "validation")
-        batch_size = 32
+        batch_size = 16
         input_shape = (224, 224, 3)
         size = (224, 224)
-        custom_epochs = 1
+        custom_epochs = 15
         monitor = "loss"
         pretrained_weights = os.path.join('.', 'weights', 'vgg16_notop.h5')
         base_filename = f"{name}_vgg16.h5"
@@ -60,7 +62,7 @@ def main():
         model_checkpoint = model_checkpt(early_stop_model, monitor)
 
         print("Applying Data Augmentation Techniques")
-        datagen = ImageDG_no_processed()
+        datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
 
         train_generator = train_gen(train_dir, datagen, size, batch_size)
 
@@ -84,15 +86,17 @@ def main():
         print("Loading the pre-trained model...")
 
         model = VGG16(
-            input_shape=input_shape,
-            weights_path=pretrained_weights,
+            include_top=False,
+	    weights="imagenet",
+	    input_shape=input_shape,
+	    pooling="max"
         )
         summary(model, 1)
 
         model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        model = add_custom(model=model, class_labels=class_labels)
+        model = add_custom_fn(model=model, class_labels=class_labels)
 
         summary(model, 2)
 

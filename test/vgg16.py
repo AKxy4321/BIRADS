@@ -1,6 +1,10 @@
 import numpy as np
 import sys
 import os
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from functions.metrics.f1_score_test import f1_score
@@ -13,9 +17,9 @@ from functions.generator.generators import ImageDG_no_processed, test_gen
 
 def test_saved_model(model, test_dir):
 
-    batch_size = 32
+    batch_size = 16
 
-    datagen = ImageDG_no_processed()
+    datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
 
     data_exists = any(
         os.listdir(os.path.join(test_dir, class_dir))
@@ -67,7 +71,7 @@ def test_saved_model(model, test_dir):
 
 
 if __name__ == "__main__":
-    name = "data"
+    name = "BIRADS"
     test_dir = os.path.join(".", "dataset", f"{name}_split", "test")
     weights_path = os.path.join('.', 'weights', f'{name}_vgg16.h5')
 
