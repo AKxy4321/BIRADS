@@ -44,7 +44,7 @@ def main():
     print("Number of devices: {}".format(strategy.num_replicas_in_sync))
 
     with strategy.scope():
-        name = "BIRADS"
+        name = "data"
         train_dir = os.path.join(".", "dataset", f"{name}_split", "train")
         val_dir = os.path.join(".", "dataset", f"{name}_split", "validation")
         batch_size = 16
@@ -52,8 +52,7 @@ def main():
         size = (224, 224)
         custom_epochs = 15
         monitor = "loss"
-        pretrained_weights = os.path.join('.', 'weights', 'vgg16_notop.h5')
-        base_filename = f"{name}_vgg16.h5"
+        base_filename = f"{name}_vgg16.weights.h5"
         early_stop_model = (  #get_unique_filename
             os.path.join(".", "weights", base_filename)
         )
@@ -105,7 +104,7 @@ def main():
         model.compile(
             optimizer=Adam(learning_rate=lr_scheduler_custom),
             loss="categorical_crossentropy",
-            metrics="accuracy",
+            metrics=["accuracy"],
         )
 
         # model_weights_path = os.path.join(
@@ -124,11 +123,6 @@ def main():
                 model_checkpoint,
             ],
         )
-
-        save_model = os.path.join(".", "weights")
-        if not os.path.exists(save_model):
-            os.makedirs(save_model)
-
 
 if __name__ == "__main__":
     main()

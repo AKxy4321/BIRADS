@@ -51,7 +51,6 @@ def train_gen(train_dir, datagen, size, batch_size):
         target_size=size,  
         batch_size=batch_size,
         class_mode="categorical",
-        subset="training",
     )
 
 
@@ -61,7 +60,6 @@ def validation_gen(val_dir, datagen, size, batch_size):
         target_size=size,
         batch_size=batch_size,
         class_mode="categorical",
-        subset="validation",
     )
 
 def test_gen(test_dir, datagen, size, batch_size):
