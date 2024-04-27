@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 import os
-from tensorflow.keras.applications import VGG16
+
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import accuracy_score
@@ -13,7 +13,7 @@ from functions.plot.metrics import (
     save_metrics,
 )
 from functions.layers.vgg16 import build_model
-from functions.generator.generators import ImageDG_no_processed, test_gen
+from functions.generator.generators import test_gen
 
 
 def test_saved_model(model, test_dir):
