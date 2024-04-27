@@ -30,7 +30,7 @@ from functions.model.misc import (
     # get_unique_filename,
 )
 from functions.model.ResNet50 import ResNet50
-from functions.layers.custom import add_custom_fn, add_custom_fn_large
+from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep
 from functions.generator.generators import (
     train_gen,
     validation_gen,

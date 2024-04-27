@@ -30,7 +30,7 @@ from functions.model.misc import (
     freeze_layers,
     get_unique_filename,
 )
-from functions.layers.custom import add_custom_fn, add_custom_fn_large
+from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep
 from functions.generator.generators import (
     train_gen,
     validation_gen,
@@ -95,7 +95,7 @@ def main():
         model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        model = add_custom_fn(model=model, class_labels=class_labels)
+        model = add_custom_fn_medium_deep(model=model, class_labels=class_labels)
 
         summary(model, 2)
 
