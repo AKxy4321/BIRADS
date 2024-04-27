@@ -4,6 +4,7 @@ import os
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import accuracy_score
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -48,7 +49,7 @@ def test_saved_model(model, test_dir):
         true_labels = test_generator.classes
         predicted_labels = np.argmax(predictions, axis=1)
 
-        f1 = f1_score(true_labels, predicted_labels)
+        f1 = accuracy_score(true_labels, predicted_labels)
         print(f"Test Accuracy:", f1)
 
         confusion_matrix_path = os.path.join(
