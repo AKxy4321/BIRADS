@@ -49,8 +49,10 @@ def test_saved_model(model, test_dir):
         true_labels = test_generator.classes
         predicted_labels = np.argmax(predictions, axis=1)
 
-        f1 = accuracy_score(true_labels, predicted_labels)
-        print(f"Test Accuracy:", f1)
+        acc = accuracy_score(true_labels, predicted_labels)
+        f1 = f1_score(true_labels, predicted_labels)
+        print(f"Test Accuracy:", acc)
+        print(f"Test F1 Score", f1)
 
         confusion_matrix_path = os.path.join(
             ".", "plots", "test", f"confusion_matrix.png"
