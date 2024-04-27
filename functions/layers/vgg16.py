@@ -14,12 +14,12 @@ def build_model(input_shape, class_labels, weights_path):
             pooling="max"
         )
 
-    model = add_custom_fn_medium_deep(model, class_labels)
+    model = add_custom_fn_medium_shallow(model, class_labels)
     model.load_weights(weights_path)
 
     model.compile(
         loss="categorical_crossentropy",
-        metrics="accuracy",
+        metrics=["accuracy"],
     )
 
     return model

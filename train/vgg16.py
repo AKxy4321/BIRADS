@@ -29,6 +29,7 @@ from functions.model.misc import (
     summary,
     freeze_layers,
     get_unique_filename,
+    early_stop
 )
 from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep
 from functions.generator.generators import (
@@ -51,7 +52,8 @@ def main():
         input_shape = (224, 224, 3)
         size = (224, 224)
         custom_epochs = 15
-        monitor = "loss"
+        monitor = "val_loss"
+        patience = 1
         base_filename = f"{name}_vgg16.weights.h5"
         early_stop_model = (  #get_unique_filename
             os.path.join(".", "weights", base_filename)
@@ -59,6 +61,9 @@ def main():
 
         print("Defining Model Checkpoint Callback")
         model_checkpoint = model_checkpt(early_stop_model, monitor)
+
+        print("Defining Early Stop")
+        early_stop_def = early_stop(monitor, patience)
 
         print("Applying Data Augmentation Techniques")
         datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
@@ -95,7 +100,7 @@ def main():
         model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        model = add_custom_fn_medium_deep(model=model, class_labels=class_labels)
+        model = add_custom_fn_medium_shallow(model=model, class_labels=class_labels)
 
         summary(model, 2)
 
@@ -120,7 +125,7 @@ def main():
             validation_data=validation_generator,
             epochs=custom_epochs,
             callbacks=[
-                model_checkpoint,
+                model_checkpoint, early_stop_def
             ],
         )
 

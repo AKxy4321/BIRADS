@@ -71,9 +71,9 @@ def test_saved_model(model, test_dir):
 
 
 if __name__ == "__main__":
-    name = "BIRADS"
+    name = "data"
     test_dir = os.path.join(".", "dataset", f"{name}_split", "test")
-    weights_path = os.path.join('.', 'weights', f'{name}_vgg16.h5')
+    weights_path = os.path.join('.', 'weights', f'{name}_vgg16.weights.h5')
 
     # Create Test Plots folder if it doesn't exist
     save_test_plots = os.path.join(".", "plots", "test")

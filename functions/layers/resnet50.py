@@ -13,7 +13,7 @@ def build_model(input_shape, class_labels, weights_path):
     
     model.compile(
         loss="categorical_crossentropy",
-        metrics="accuracy",
+        metrics=["accuracy"],
     )
 
     return model
