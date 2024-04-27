@@ -50,7 +50,7 @@ def test_saved_model(model, test_dir):
         predicted_labels = np.argmax(predictions, axis=1)
 
         acc = accuracy_score(true_labels, predicted_labels)
-        f1 = f1_score(true_labels, predicted_labels)
+        f1 = float(f1_score(true_labels, predicted_labels))
         print(f"Test Accuracy:", acc)
         print(f"Test F1 Score", f1)
 
