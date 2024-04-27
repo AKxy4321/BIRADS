@@ -40,7 +40,7 @@ def test_saved_model(model, test_dir):
 
         # Evaluate the model on the testing data
         test_results = model.evaluate(test_generator)
-        print(f"Test Loss):", test_results[0])
+        print(f"Test Loss:", test_results[0])
 
         # Make predictions on the testing data
         predictions = model.predict(test_generator)
