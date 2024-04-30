@@ -35,3 +35,12 @@ def add_custom_fn_medium_shallow(model, class_labels):
 
     x = Model(model.input, x)
     return x
+
+def add_custom_fn_small_shallow(model, class_labels):
+    x = Flatten()(model.output)
+    x = Dense(512, activation="relu")(x)
+    x = Dropout(0.2)(x)
+    x = (Dense(len(class_labels), activation="softmax"))(x)
+
+    x = Model(model.input, x)
+    return x

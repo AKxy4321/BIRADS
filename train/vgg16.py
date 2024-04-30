@@ -31,7 +31,7 @@ from functions.model.misc import (
     get_unique_filename,
     early_stop
 )
-from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep
+from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep, add_custom_fn_small_shallow
 from functions.generator.generators import (
     train_gen,
     validation_gen,
@@ -45,7 +45,7 @@ def main():
     print("Number of devices: {}".format(strategy.num_replicas_in_sync))
 
     with strategy.scope():
-        name = "data"
+        name = "BIRADS"
         train_dir = os.path.join(".", "dataset", f"{name}_split", "train")
         val_dir = os.path.join(".", "dataset", f"{name}_split", "validation")
         batch_size = 16
@@ -66,13 +66,26 @@ def main():
         early_stop_def = early_stop(monitor, patience)
 
         print("Applying Data Augmentation Techniques")
-        datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+        train_processing = {
+            'rescale': 1.0 / 255,            # Rescale pixel values to [0, 1]
+            'rotation_range': 30,            # Rotate images randomly by up to 20 degrees
+            'width_shift_range': 0.2,        # Shift images horizontally by up to 20% of the width
+            'height_shift_range': 0.2,       # Shift images vertically by up to 20% of the height
+            'zoom_range': 0.2,               # Zoom images by up to 20%
+            'brightness_range': [0.5, 1.5],  # Adjust brightness randomly between 0.5 and 1.5
+            'horizontal_flip': 0.5,
+        }
+        valid_processing = {
+            'rescale': 1.0 / 255,
+        }
+        train_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **train_processing)
+        valid_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **valid_processing)
 
-        train_generator = train_gen(train_dir, datagen, size, batch_size)
+        train_generator = train_gen(train_dir, train_datagen, size, batch_size)
 
         train_size = len(train_generator.filenames)
-        initial_learning_rate = 0.001
-        final_learning_rate = 0.00001
+        initial_learning_rate = 1e-3
+        final_learning_rate = 1e-4
         learning_rate_decay_factor = (final_learning_rate / initial_learning_rate) ** (
             1 / custom_epochs
         )
@@ -85,7 +98,7 @@ def main():
         class_labels = train_generator.class_indices
         print(class_labels)
 
-        validation_generator = validation_gen(val_dir, datagen, size, batch_size)
+        validation_generator = validation_gen(val_dir, valid_datagen, size, batch_size)
 
         print("Loading the pre-trained model...")
 
@@ -100,7 +113,7 @@ def main():
         model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        model = add_custom_fn_medium_shallow(model=model, class_labels=class_labels)
+        model = add_custom_fn_small_shallow(model=model, class_labels=class_labels)
 
         summary(model, 2)
 

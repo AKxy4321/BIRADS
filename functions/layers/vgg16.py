@@ -4,7 +4,7 @@ from tensorflow.keras.applications import VGG16
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep
+from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep, add_custom_fn_small_shallow
 
 def build_model(input_shape, class_labels, weights_path):
     model = VGG16(
