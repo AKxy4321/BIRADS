@@ -4,7 +4,6 @@ import os
 
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import accuracy_score
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -40,7 +39,8 @@ def test_saved_model(model, test_dir):
 
         # Evaluate the model on the testing data
         test_results = model.evaluate(test_generator)
-        print(f"Test Loss:", test_results[0])
+        print(f"Test Loss: {test_results[0]}")
+        print(f"Test Accuracy: {test_results[1]}")
 
         # Make predictions on the testing data
         predictions = model.predict(test_generator)
@@ -48,11 +48,6 @@ def test_saved_model(model, test_dir):
         # Convert one-hot encoded labels back to categorical labels
         true_labels = test_generator.classes
         predicted_labels = np.argmax(predictions, axis=1)
-
-        acc = accuracy_score(true_labels, predicted_labels)
-        f1 = float(f1_score(true_labels, predicted_labels))
-        print(f"Test Accuracy:", acc)
-        print(f"Test F1 Score", f1)
 
         confusion_matrix_path = os.path.join(
             ".", "plots", "test", f"confusion_matrix.png"

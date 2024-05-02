@@ -68,8 +68,6 @@ def main():
         print("Applying Data Augmentation Techniques")
 
         datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
-        # train_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **train_processing)
-        # valid_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **valid_processing)
 
         train_generator = train_gen(train_dir, datagen, size, batch_size)
 
