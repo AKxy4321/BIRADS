@@ -1,7 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.applications.resnet import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications.resnet50 import preprocess_input 
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -27,14 +28,14 @@ from functions.model.misc import (
     model_checkpt,
     summary,
     freeze_layers,
-    # get_unique_filename,
+    get_unique_filename,
+    early_stop
 )
-from functions.model.ResNet50 import ResNet50
-from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep
+from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep, add_custom_fn_small_shallow
 from functions.generator.generators import (
     train_gen,
     validation_gen,
-    # ImageDG_no_processed,
+    ImageDG_no_processed,
 )
 from functions.learning_rate_scheduler.lr_scheduler import lr_custom
 
@@ -44,16 +45,16 @@ def main():
     print("Number of devices: {}".format(strategy.num_replicas_in_sync))
 
     with strategy.scope():
-        name = "BIRADS"
+        name = "data"
         train_dir = os.path.join(".", "dataset", f"{name}_split", "train")
         val_dir = os.path.join(".", "dataset", f"{name}_split", "validation")
         batch_size = 16
         input_shape = (224, 224, 3)
         size = (224, 224)
-        custom_epochs = 5
-        monitor = "loss"
-        pretrained_weights = os.path.join('.', 'weights', 'resnet50_notop.h5')
-        base_filename = f"{name}_resnet50.h5"
+        custom_epochs = 15
+        monitor = "val_loss"
+        patience = 5
+        base_filename = f"{name}_densenet121.weights.h5"
         early_stop_model = (  #get_unique_filename
             os.path.join(".", "weights", base_filename)
         )
@@ -61,15 +62,30 @@ def main():
         print("Defining Model Checkpoint Callback")
         model_checkpoint = model_checkpt(early_stop_model, monitor)
 
-        print("Applying Data Augmentation Techniques")
-        tr_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
-        val_datagen = ImageDataGenerator(dtype='float32',preprocessing_function=preprocess_input)
+        print("Defining Early Stop")
+        early_stop_def = early_stop(monitor, patience)
 
-        train_generator = train_gen(train_dir, tr_datagen, size, batch_size)
+        print("Applying Data Augmentation Techniques")
+        train_processing = {
+            'rescale': 1.0 / 255,            # Rescale pixel values to [0, 1]
+            # 'rotation_range': 30,            # Rotate images randomly by up to 20 degrees
+            # 'width_shift_range': 0.2,        # Shift images horizontally by up to 20% of the width
+            # 'height_shift_range': 0.2,       # Shift images vertically by up to 20% of the height
+            # 'zoom_range': 0.2,               # Zoom images by up to 20%
+            # 'brightness_range': [0.5, 1.5],  # Adjust brightness randomly between 0.5 and 1.5
+            # 'horizontal_flip': 0.5,
+        }
+        valid_processing = {
+            'rescale': 1.0 / 255,
+        }
+        train_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **train_processing)
+        valid_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **valid_processing)
+
+        train_generator = train_gen(train_dir, train_datagen, size, batch_size)
 
         train_size = len(train_generator.filenames)
-        initial_learning_rate = 0.001
-        final_learning_rate = 0.00001
+        initial_learning_rate = 1e-3
+        final_learning_rate = 1e-4
         learning_rate_decay_factor = (final_learning_rate / initial_learning_rate) ** (
             1 / custom_epochs
         )
@@ -82,16 +98,22 @@ def main():
         class_labels = train_generator.class_indices
         print(class_labels)
 
-        validation_generator = validation_gen(val_dir, val_datagen, size, batch_size)
+        validation_generator = validation_gen(val_dir, valid_datagen, size, batch_size)
 
         print("Loading the pre-trained model...")
 
-        model = ResNet50(input_shape=input_shape, weights_path=pretrained_weights, choice="max")
+        model = ResNet50(
+            include_top=False,
+	    weights="imagenet",
+	    input_shape=input_shape,
+	    pooling="max"
+        )
         summary(model, 1)
+
         model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        model = add_custom_fn_large(model, class_labels=class_labels)
+        model = add_custom_fn(model=model, class_labels=class_labels)
 
         summary(model, 2)
 
@@ -100,30 +122,25 @@ def main():
         model.compile(
             optimizer=Adam(learning_rate=lr_scheduler_custom),
             loss="categorical_crossentropy",
-            metrics="accuracy",
+            metrics=["accuracy"],
         )
 
-        model_weights_path = os.path.join(
-             ".", "weights", f"{name}_resnet50.h5"
-         )
-        if os.path.exists(model_weights_path):  # Manually choose which weights to load
+        # model_weights_path = os.path.join(
+        #     ".", "weights", f"weights_{name}_categorical_1_1.h5"
+        # )
+        # if os.path.exists(model_weights_path):  # Manually choose which weights to load
 
-             model.load_weights(model_weights_path)
-             print("Weights loaded from previous training")
+        #     model.load_weights(model_weights_path)
+        #     print("Weights loaded from previous training")
 
         model.fit(
             train_generator,
             validation_data=validation_generator,
             epochs=custom_epochs,
             callbacks=[
-                model_checkpoint,
+                model_checkpoint, early_stop_def
             ],
         )
-
-        save_model = os.path.join(".", "weights")
-        if not os.path.exists(save_model):
-            os.makedirs(save_model)
-
 
 if __name__ == "__main__":
     main()

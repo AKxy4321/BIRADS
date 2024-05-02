@@ -1,8 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.applications import DenseNet121
-from tensorflow.keras.layers import Dense, Flatten, Dropout
-from tensorflow.keras.models import Model
+from tensorflow.keras.applications import DenseNet121 
+from tensorflow.keras.applications.densenet import preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -29,7 +29,9 @@ from functions.model.misc import (
     summary,
     freeze_layers,
     get_unique_filename,
+    early_stop
 )
+from functions.layers.custom import add_custom_fn, add_custom_fn_medium_shallow, add_custom_fn_medium_deep, add_custom_fn_small_shallow
 from functions.generator.generators import (
     train_gen,
     validation_gen,
@@ -44,28 +46,36 @@ def main():
 
     with strategy.scope():
         name = "data"
-        train_dir = os.path.join("..", "dataset", f"{name}_split", "train")
-        val_dir = os.path.join("..", "dataset", f"{name}_split", "validation")
-        batch_size = 32
+        train_dir = os.path.join(".", "dataset", f"{name}_split", "train")
+        val_dir = os.path.join(".", "dataset", f"{name}_split", "validation")
+        batch_size = 16
         input_shape = (224, 224, 3)
         size = (224, 224)
-        custom_epochs = 15
-        monitor = "loss"
-        model_path = get_unique_filename(
-            os.path.join("..", "model", f"model_{name}_Dense.h5")
+        custom_epochs = 200
+        monitor = "val_loss"
+        patience = 2
+        base_filename = f"{name}_densenet121.weights.h5"
+        early_stop_model = (  #get_unique_filename
+            os.path.join(".", "weights", base_filename)
         )
 
         print("Defining Model Checkpoint Callback")
-        model_checkpoint = model_checkpt(model_path, monitor)
+        model_checkpoint = model_checkpt(early_stop_model, monitor)
+
+        print("Defining Early Stop")
+        early_stop_def = early_stop(monitor, patience)
 
         print("Applying Data Augmentation Techniques")
-        datagen = ImageDG_no_processed()
+
+        datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+        # train_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **train_processing)
+        # valid_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **valid_processing)
 
         train_generator = train_gen(train_dir, datagen, size, batch_size)
 
         train_size = len(train_generator.filenames)
-        initial_learning_rate = 0.001
-        final_learning_rate = 0.00001
+        initial_learning_rate = 1e-3
+        final_learning_rate = 1e-5
         learning_rate_decay_factor = (final_learning_rate / initial_learning_rate) ** (
             1 / custom_epochs
         )
@@ -82,25 +92,18 @@ def main():
 
         print("Loading the pre-trained model...")
 
-        base_model = DenseNet121(
+        model = DenseNet121(
             include_top=False,
-            weights="imagenet",
-            input_shape=input_shape,
-            pooling="max",
+	    weights="imagenet",
+	    input_shape=input_shape,
+	    pooling="max"
         )
-        summary(base_model, 1)
+        summary(model, 1)
 
-        base_model = freeze_layers(base_model, "all")
+        model = freeze_layers(model, "all")
 
         print("Adding custom layers with regularization to the base model...")
-        x = Flatten()(base_model.output)
-        x = Dense(512, activation="relu")(x)
-        x = Dropout(0.4)(x)
-        x = Dense(256, activation="relu")(x)
-        x = Dropout(0.2)(x)
-        x = Dense(len(class_labels), activation="softmax")(x)
-
-        model = Model(base_model.input, x)
+        model = add_custom_fn(model=model, class_labels=class_labels)
 
         summary(model, 2)
 
@@ -109,7 +112,7 @@ def main():
         model.compile(
             optimizer=Adam(learning_rate=lr_scheduler_custom),
             loss="categorical_crossentropy",
-            metrics="accuracy",
+            metrics=["accuracy"],
         )
 
         # model_weights_path = os.path.join(
@@ -125,16 +128,9 @@ def main():
             validation_data=validation_generator,
             epochs=custom_epochs,
             callbacks=[
-                model_checkpoint,
+                model_checkpoint, early_stop_def
             ],
         )
-
-        save_model = os.path.join(".", "model")
-        if not os.path.exists(save_model):
-            os.makedirs(save_model)
-
-        model.save(model_path)
-
 
 if __name__ == "__main__":
     main()
