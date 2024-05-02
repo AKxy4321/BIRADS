@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import os
 
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications.densenet import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,8 +19,6 @@ def test_saved_model(model, test_dir):
 
     batch_size = 16
 
-    datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
-
     data_exists = any(
         os.listdir(os.path.join(test_dir, class_dir))
         for class_dir in os.listdir(test_dir)
@@ -29,7 +27,9 @@ def test_saved_model(model, test_dir):
     if data_exists:
         size = (224, 224)
         input_shape = (224, 224, 3)
-
+        
+        datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+        
         test_generator = test_gen(test_dir, datagen, size, batch_size)
 
         class_labels = test_generator.class_indices
