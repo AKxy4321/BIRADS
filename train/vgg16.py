@@ -66,22 +66,10 @@ def main():
         early_stop_def = early_stop(monitor, patience)
 
         print("Applying Data Augmentation Techniques")
-        train_processing = {
-            'rescale': 1.0 / 255,            # Rescale pixel values to [0, 1]
-            'rotation_range': 30,            # Rotate images randomly by up to 20 degrees
-            'width_shift_range': 0.2,        # Shift images horizontally by up to 20% of the width
-            'height_shift_range': 0.2,       # Shift images vertically by up to 20% of the height
-            'zoom_range': 0.2,               # Zoom images by up to 20%
-            'brightness_range': [0.5, 1.5],  # Adjust brightness randomly between 0.5 and 1.5
-            'horizontal_flip': 0.5,
-        }
-        valid_processing = {
-            'rescale': 1.0 / 255,
-        }
-        train_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **train_processing)
-        valid_datagen = ImageDataGenerator(preprocessing_function=preprocess_input, **valid_processing)
 
-        train_generator = train_gen(train_dir, train_datagen, size, batch_size)
+        datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+
+        train_generator = train_gen(train_dir, datagen, size, batch_size)
 
         train_size = len(train_generator.filenames)
         initial_learning_rate = 1e-3
@@ -98,7 +86,7 @@ def main():
         class_labels = train_generator.class_indices
         print(class_labels)
 
-        validation_generator = validation_gen(val_dir, valid_datagen, size, batch_size)
+        validation_generator = validation_gen(val_dir, datagen, size, batch_size)
 
         print("Loading the pre-trained model...")
 

@@ -53,7 +53,7 @@ def main():
         size = (224, 224)
         custom_epochs = 200
         monitor = "val_loss"
-        patience = 2
+        patience = 10
         base_filename = f"{name}_densenet121.weights.h5"
         early_stop_model = (  #get_unique_filename
             os.path.join(".", "weights", base_filename)
