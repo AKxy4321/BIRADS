@@ -16,7 +16,7 @@ if gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
 
     # Set visible devices
-    visible_gpus = gpus[:2]  # Choose the number of GPUs you want to use
+    visible_gpus = gpus[:1]  # Choose the number of GPUs you want to use
     tf.config.experimental.set_visible_devices(visible_gpus, "GPU")
 
     print("GPU will be used.")
