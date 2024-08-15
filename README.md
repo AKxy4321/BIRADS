@@ -1,2 +1,1 @@
-# BIRADS_Classification
-Trained a CNN on a custom dataset(BIRADS here) via Transfer Learning.
+Train CNN on a custom dataset with this repo
