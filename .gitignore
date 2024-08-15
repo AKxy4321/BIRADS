@@ -4,3 +4,4 @@ logs/
 weights/*.weights.h5
 **/__pycache__/
 *.Identifier
+weights/*(Copy).h5

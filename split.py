@@ -60,6 +60,7 @@ def split_images(input_folder, output_folder, split_ratio=(0.7, 0.2, 0.1), seed=
                 copied_images.add(image)
 
 # Example usage
-input_folder = os.path.join('.', 'dataset', 'data')
-output_folder = os.path.join('.', 'dataset', 'data_split')
+name = "Breast_Density"
+input_folder = os.path.join('.', 'dataset', f'{name}')
+output_folder = os.path.join('.', 'dataset', f'{name}_split')
 split_images(input_folder, output_folder)
